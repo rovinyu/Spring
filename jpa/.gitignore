@@ -1,5 +1,4 @@
 /target/
-*/lib/*
 !.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###
@@ -10,7 +9,6 @@
 .settings
 .springBeans
 .sts4-cache
-.DS_Store
 
 ### IntelliJ IDEA ###
 .idea
