@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <title>List Users</title>
+</head>
+<body>
+    <div th:replace="~{fragments/header::header}"></div>
+    <h3 th:text="${userModel.title}">rovin</h3>
+    <div>
+        <a href="/users/form.html" th:href="@{/users/form}">CreateUser</a>
+    </div>
+    <br>
+    <table border="2">
+        <thead>
+            <tr>
+                <td>ID</td>
+                <td>Name</td>
+                <td>Password</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:if="${userModel.userList.size()} eq 0">
+                <td colspan="3">No User Information!</td>
+            </tr>
+            <tr th:each="user:${userModel.userList}">
+                <td th:text="${user.id}"></td>
+                <td><a th:href="@{'/users/'+${user.id}}" th:text="${user.username}"></a></td>
+                <td th:text="${user.password}"></td>
+            </tr>
+        </tbody>
+    </table>
+    <div th:replace="~{fragments/footer::footer}"></div>
+</body>
+</html>

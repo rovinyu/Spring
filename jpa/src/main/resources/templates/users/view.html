@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <title>View Users</title>
+</head>
+<body>
+    <div th:replace="~{fragments/header::header}"></div>
+    <h3 th:text="${userModel.title}">rovin</h3>
+    <div>
+        <P><strong>ID:</strong><span th:text="${userModel.user.id}"></span> </P>
+        <P><strong>Name:</strong><span th:text="${userModel.user.username}"></span></P>
+        <p><strong>Password:</strong><span th:text="${userModel.user.password}"></span></p>
+    </div>
+    <div>
+        <a th:href="@{'/users/delete/'+${userModel.user.id}}">Delete</a>
+        <a th:href="@{'/users/modify/'+${userModel.user.id}}">Modify</a>
+    </div>
+    <div th:replace="~{fragments/footer::footer}"></div>
+</body>
+</html>
