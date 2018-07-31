@@ -46,6 +46,13 @@ public class MainController {
         return "login";
     }
 
+    @GetMapping("/register-error")
+    public String registerError(Model model) {
+        model.addAttribute("registerError", true);
+        model.addAttribute("errorMsg", "Register Error: Username or email violation Error!");
+        return "register";
+    }
+
     @GetMapping("/register")
     public String register() {
         return "register";
@@ -57,7 +64,12 @@ public class MainController {
         authorities.add(authorityService.getAuthorityById(ROLE_USER_AUTHORITY_ID)
         .get());
         user.setAuthorities(authorities);
-        userService.registerUser(user);
+        try {
+            userService.registerUser(user);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/register-error";
+        }
         return "redirect:/login";
     }
 }

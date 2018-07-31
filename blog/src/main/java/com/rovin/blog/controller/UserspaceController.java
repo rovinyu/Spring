@@ -22,7 +22,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.swing.text.html.Option;
 import javax.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.Optional;
@@ -53,7 +52,7 @@ public class UserspaceController {
     @GetMapping("/{username}/blogs")
     public String listBlogsByOrder(@PathVariable("username") String username,
                                    @RequestParam(value = "order", required = false, defaultValue = "new") String order,
-                                   @RequestParam(value = "catalog", required = false, defaultValue = "notes") String catalog,
+                                   @RequestParam(value = "catalog", required = false) String catalog,
                                    @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
                                    @RequestParam(value = "async", required = false) boolean async,
                                    @RequestParam(value = "pageIndex", required = false, defaultValue = "0") int pageIndex,
@@ -76,7 +75,7 @@ public class UserspaceController {
         model.addAttribute("catalog", catalog);
         model.addAttribute("keyword", keyword);
         model.addAttribute("page", page);
-        model.addAttribute("bloglist", list);
+        model.addAttribute("blogList", list);
         return (async == true ?"/userspace/u :: #mainContainerReplace" : "/userspace/u");
     }
 
@@ -116,7 +115,7 @@ public class UserspaceController {
         model.addAttribute("blog", blogService.getBlogById(id).get());
         model.addAttribute("fileServerUrl", fileServerUrl);
 
-        return new ModelAndView("/userspace/blogedit","blogmodel", model);
+        return new ModelAndView("/userspace/blogedit","blogModel", model);
     }
 
     @PostMapping("/{username}/blogs/edit")

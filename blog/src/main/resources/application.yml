@@ -5,7 +5,7 @@ spring:
     mode: HTML
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/spring-cloud?allowPublicKeyRetrieval=true&useSSL=false&useUnicode=true&characterEncoding=utf-8&characterSetResults=utf-8
+    url: jdbc:mysql://localhost:3306/blog?allowPublicKeyRetrieval=true&useSSL=false&useUnicode=true&characterEncoding=utf-8&characterSetResults=utf-8
     username: root
     password: 12345678
   jpa:
@@ -15,3 +15,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+
+file:
+  server:
+    url: http://localhost:8081/upload

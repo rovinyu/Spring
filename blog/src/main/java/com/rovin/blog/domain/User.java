@@ -58,7 +58,7 @@ public class User implements UserDetails {
         this.name = name;
         this.email = email;
         this.username = username;
-        this.password = password;
+        setEncodePassword(password);
     }
 
     @Override
@@ -135,7 +135,7 @@ public class User implements UserDetails {
     }
 
     public void setPassword(String password) {
-        this.password = password;
+        setEncodePassword(password);
     }
 
     public String getAvatar() {
