@@ -48,18 +48,18 @@ public class Blog implements Serializable {
     @org.hibernate.annotations.CreationTimestamp
     private Timestamp createTime;
 
-    @Column(name="category", length = 100)
-    private String category;
+    @OneToOne(cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
+    @JoinColumn(name="catalog_id")
+    private Catalog catalog;
 
     protected Blog() {
 
     }
 
-    public Blog(String title, String summary, String content, String category) {
+    public Blog(String title, String summary, String content) {
         this.title = title;
         this.summary = summary;
         this.content = content;
-        this.category = category;
     }
 
 
@@ -112,11 +112,11 @@ public class Blog implements Serializable {
         return createTime;
     }
 
-    public String getCategory() {
-        return category;
+    public Catalog getCatalog() {
+        return catalog;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setCatalog(Catalog catalog) {
+        this.catalog = catalog;
     }
 }

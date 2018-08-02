@@ -1,6 +1,7 @@
 package com.rovin.blog.service;
 
 import com.rovin.blog.domain.Blog;
+import com.rovin.blog.domain.Catalog;
 import com.rovin.blog.domain.User;
 import com.rovin.blog.repository.BlogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +39,9 @@ public class BlogService {
         return blogs;
     }
 
-    public Page<Blog> listBlogsByCategory(User user, String category, Pageable pageable) {
-        category = "%"+category+"%";
-        Page<Blog> blogs = blogRepository.findByCategoryLikeAndUserOrderByCreateTimeDesc(category, user, pageable);
+    public Page<Blog> listBlogsByCategory(Catalog catalog, Pageable pageable) {
+
+        Page<Blog> blogs = blogRepository.findByCatalog(catalog,pageable);
         return blogs;
     }
 

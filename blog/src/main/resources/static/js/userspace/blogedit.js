@@ -21,9 +21,14 @@ $(function() {
     });
         
     $('.form-control-chosen').chosen();
-    
-    
+
     $("#uploadImage").click(function() {
+
+        if ($('#file').val().length === 0 ) {
+            toastr.error("error: no file is chosen");
+            return;
+        }
+
         $.ajax({
             url: fileServerUrl,
             type: 'POST',
@@ -33,8 +38,10 @@ $(function() {
             contentType: false,
             success: function(data){
                 var mdcontent=$("#md").val();
-                 $("#md").val(mdcontent + "\n![]("+data +") \n");
-
+                var cursorPos = $("#md").prop("selectionStart");
+                var textBefore = mdcontent.substring(0, cursorPos);
+                var textAfter = mdcontent.substring(cursorPos, mdcontent.length);
+                 $("#md").val(textBefore + "\n![]("+data +") \n" + textAfter);
              }
         }).done(function(res) {
             $('#file').val('');

@@ -1,16 +1,21 @@
 package com.rovin.blog.controller;
 
 import com.rovin.blog.domain.Blog;
+import com.rovin.blog.domain.Catalog;
 import com.rovin.blog.domain.User;
 import com.rovin.blog.service.BlogService;
+import com.rovin.blog.service.CatalogService;
 import com.rovin.blog.service.UserService;
 import com.rovin.blog.util.ConstraintViolationExceptionHandler;
 import com.rovin.blog.vo.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +35,8 @@ import java.util.Optional;
 @RequestMapping("/u")
 public class UserspaceController {
 
+    private final static Logger logger = LoggerFactory.getLogger(UserspaceController.class);
+
     @Autowired
     private UserService userService;
 
@@ -42,17 +49,32 @@ public class UserspaceController {
     @Autowired
     private BlogService blogService;
 
+    @Autowired
+    private CatalogService catalogService;
+
     @GetMapping("/{username}")
     public String userSpace(@PathVariable("username") String username, Model model) {
         User user = (User) userDetailsService.loadUserByUsername(username);
         model.addAttribute("user", user);
+        logger.info("User=[{}]", user);
         return "redirect:/u/" + username + "/blogs";
     }
 
+    /**
+     * @param username
+     * @param order
+     * @param catalogId
+     * @param keyword
+     * @param async
+     * @param pageIndex
+     * @param pageSize
+     * @param model
+     * @return
+     */
     @GetMapping("/{username}/blogs")
     public String listBlogsByOrder(@PathVariable("username") String username,
                                    @RequestParam(value = "order", required = false, defaultValue = "new") String order,
-                                   @RequestParam(value = "catalog", required = false) String catalog,
+                                   @RequestParam(value = "catalog", required = false) Long catalogId,
                                    @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
                                    @RequestParam(value = "async", required = false) boolean async,
                                    @RequestParam(value = "pageIndex", required = false, defaultValue = "0") int pageIndex,
@@ -60,10 +82,16 @@ public class UserspaceController {
         User user = (User) userDetailsService.loadUserByUsername(username);
 
         Page<Blog> page = null;
-        Pageable pageable = PageRequest.of(pageIndex, pageSize);
+        Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+        Pageable pageable = PageRequest.of(pageIndex, pageSize, sort);
 
-        if (catalog != null) {
-            page = blogService.listBlogsByCategory(user, catalog, pageable);
+        if (catalogId != null && catalogId > 0) {
+            Optional<Catalog> optionalCatalog = catalogService.getCatalogById(catalogId);
+            if (optionalCatalog.isPresent()) {
+                Catalog catalog = optionalCatalog.get();
+                page = blogService.listBlogsByCategory(catalog, pageable);
+                order="";
+            }
         } else if (order.equals("new")) {
             page = blogService.listBlogsByTitle(user, keyword, pageable);
         }
@@ -72,10 +100,11 @@ public class UserspaceController {
 
         model.addAttribute("user", user);
         model.addAttribute("order", order);
-        model.addAttribute("catalog", catalog);
+        model.addAttribute("catalogId", catalogId);
         model.addAttribute("keyword", keyword);
         model.addAttribute("page", page);
         model.addAttribute("blogList", list);
+        logger.info("User=[{}], CatalogId=[{}]", user, catalogId);
         return (async == true ?"/userspace/u :: #mainContainerReplace" : "/userspace/u");
     }
 
@@ -99,12 +128,19 @@ public class UserspaceController {
         model.addAttribute("isBlogOwner", isBlogOwner);
         model.addAttribute("blogModel", blog.get());
 
+        logger.info("isBlogOwner=[{}], blogID=[{}]", isBlogOwner, id);
+
         return "/userspace/blog";
     }
 
     @GetMapping("/{username}/blogs/edit")
     public ModelAndView createBlog(@PathVariable("username") String username, Model model) {
-        model.addAttribute("blog", new Blog(null, null, null, null));
+
+        User user = (User)userDetailsService.loadUserByUsername(username);
+        List<Catalog> catalogs = catalogService.listCatalogs(user);
+
+        model.addAttribute("catalogs", catalogs);
+        model.addAttribute("blog", new Blog(null, null, null));
         model.addAttribute("fileServerUrl", fileServerUrl);
         return new ModelAndView("/userspace/blogedit", "blogModel", model);
     }
@@ -112,6 +148,11 @@ public class UserspaceController {
     @GetMapping("/{username}/blogs/edit/{id}")
     public ModelAndView editBlog(@PathVariable("username") String username,
                                  @PathVariable("id") Long id, Model model) {
+
+        User user = (User)userDetailsService.loadUserByUsername(username);
+        List<Catalog> catalogs = catalogService.listCatalogs(user);
+
+        model.addAttribute("catalogs", catalogs);
         model.addAttribute("blog", blogService.getBlogById(id).get());
         model.addAttribute("fileServerUrl", fileServerUrl);
 
@@ -123,6 +164,10 @@ public class UserspaceController {
     public ResponseEntity<Response> saveBlog(@PathVariable("username") String username,
                                              @RequestBody Blog blog) {
 
+        if (blog.getCatalog().getId() == null) {
+            return ResponseEntity.ok().body(new Response(false, "No catalog is chosen"));
+        }
+
         try {
             //Judge whether it's new or update
             if (blog.getId() != null) {
@@ -132,7 +177,7 @@ public class UserspaceController {
                     originalBlog.setTitle(blog.getTitle());
                     originalBlog.setContent(blog.getContent());
                     originalBlog.setSummary(blog.getSummary());
-                    originalBlog.setCategory(blog.getCategory());
+                    originalBlog.setCatalog(blog.getCatalog());
                     blogService.saveBlog(originalBlog);
                 }
             } else {
@@ -146,6 +191,8 @@ public class UserspaceController {
         } catch (Exception e) {
                 return ResponseEntity.ok().body(new Response(false, e.getMessage()));
         }
+
+        logger.info("username=[{}], blogId=[{}]", username, blog.getId());
 
         String redirectUrl = "/u/" + username + "/blogs/" + blog.getId();
         return ResponseEntity.ok().body(new Response(true, "Process successfully",

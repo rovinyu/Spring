@@ -7,6 +7,8 @@ import com.rovin.blog.service.AuthorityService;
 import com.rovin.blog.service.UserService;
 import com.rovin.blog.util.ConstraintViolationExceptionHandler;
 import com.rovin.blog.vo.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,12 +27,22 @@ import java.util.Optional;
 @RequestMapping("/users")
 public class UserController {
 
+    private final static Logger logger = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     private UserService userService;
 
     @Autowired
     private AuthorityService authorityService;
 
+    /**
+     * @param async
+     * @param pageIndex
+     * @param pageSize
+     * @param name
+     * @param model
+     * @return
+     */
     @GetMapping
     public ModelAndView list(@RequestParam(value = "async", required = false) boolean async,
                              @RequestParam(value = "pageIndex", required = false, defaultValue = "0") int pageIndex,
@@ -42,6 +54,8 @@ public class UserController {
 
         model.addAttribute("page", page);
         model.addAttribute("userList", list);
+
+        logger.info("UserList=[{}]", list);
         return new ModelAndView(async == true? "users/list :: #mainContainerReplace":"users/list",
                 "userModel", model);
     }
@@ -52,6 +66,11 @@ public class UserController {
         return new ModelAndView("users/add", "userModel", model);
     }
 
+    /**
+     * @param user
+     * @param authorityId
+     * @return
+     */
     @PostMapping
     public ResponseEntity<Response> saveorUpdateUser(User user, Long authorityId) {
 
@@ -64,6 +83,8 @@ public class UserController {
         } catch (ConstraintViolationException e) {
             return ResponseEntity.ok().body(new Response(false, ConstraintViolationExceptionHandler.getMessage(e)));
         }
+
+        logger.info("UpdateUser user=[{}], authorityId=[{}]", user, authorityId);
 
         return ResponseEntity.ok().body(new Response(true, "Process successfully", user));
     }
