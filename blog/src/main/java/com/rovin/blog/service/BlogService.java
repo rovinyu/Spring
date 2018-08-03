@@ -2,6 +2,7 @@ package com.rovin.blog.service;
 
 import com.rovin.blog.domain.Blog;
 import com.rovin.blog.domain.Catalog;
+import com.rovin.blog.domain.EsBlog;
 import com.rovin.blog.domain.User;
 import com.rovin.blog.repository.BlogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,15 +19,45 @@ public class BlogService {
     @Autowired
     private BlogRepository blogRepository;
 
+    @Autowired
+    private EsBlogService esBlogService;
+
     @Transactional
     public Blog saveBlog(Blog blog) {
+
+        boolean isNew = (blog.getId() == null);
+        EsBlog esBlog = null;
+
         Blog returnBlog = blogRepository.save(blog);
+
+        if (isNew) {
+            esBlog = new EsBlog(returnBlog);
+        } else {
+            esBlog = esBlogService.getEsBlogByBlogId(blog.getId());
+            esBlog.update(returnBlog);
+        }
+
+        try {
+            esBlogService.updateEsBlog(esBlog);
+        } catch (Exception e) {
+            //Don't throw the exception to the upper layer
+            e.printStackTrace();
+        }
+
         return returnBlog;
     }
 
     @Transactional
     public void removeBlog(Long id) {
+
         blogRepository.deleteById(id);
+        try {
+            EsBlog esBlog = esBlogService.getEsBlogByBlogId(id);
+            esBlogService.removeEsBlog(esBlog.getId());
+        } catch (Exception e) {
+            // Don't throw the exception to the upper layer
+            e.printStackTrace();
+        }
     }
 
     public Optional<Blog> getBlogById(Long id) {

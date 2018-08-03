@@ -104,7 +104,7 @@ public class UserspaceController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("page", page);
         model.addAttribute("blogList", list);
-        logger.info("User=[{}], CatalogId=[{}]", user, catalogId);
+        logger.info("User=[{}], order=[{}], keyword=[{}], catalogId=[{}]", user, order, keyword, catalogId);
         return (async == true ?"/userspace/u :: #mainContainerReplace" : "/userspace/u");
     }
 
@@ -112,7 +112,12 @@ public class UserspaceController {
     public String getBlogById(@PathVariable("username") String username,
                               @PathVariable("id") Long id, Model model) {
         User principal = null;
-        Optional<Blog> blog = blogService.getBlogById(id);
+        Optional<Blog> optionalBlog = blogService.getBlogById(id);
+        Blog blog = null;
+
+        if (optionalBlog.isPresent()) {
+            blog = optionalBlog.get();
+        }
 
         boolean isBlogOwner = false;
         if (SecurityContextHolder.getContext().getAuthentication() != null
@@ -126,7 +131,7 @@ public class UserspaceController {
         }
 
         model.addAttribute("isBlogOwner", isBlogOwner);
-        model.addAttribute("blogModel", blog.get());
+        model.addAttribute("blogModel", blog);
 
         logger.info("isBlogOwner=[{}], blogID=[{}]", isBlogOwner, id);
 
@@ -234,7 +239,12 @@ public class UserspaceController {
         originalUser.setEmail(user.getEmail());
         originalUser.setName(user.getName());
 
-        //Judge whether password has been updated
+        String password = user.getPassword();
+        if (password != null && !password.equals(originalUser.getPassword())) {
+            originalUser.copyPassword(password);
+        }
+
+        /*
         String rawPassword = originalUser.getPassword();
         PasswordEncoder encoder = new BCryptPasswordEncoder();
         String encodedPasswd = encoder.encode(user.getPassword());
@@ -243,6 +253,7 @@ public class UserspaceController {
         if (!isMatch) {
             originalUser.setEncodePassword(user.getPassword());
         }
+        */
 
         userService.saveOrUpdateUser(originalUser);
         return "redirect:/u/" + username + "/profile";

@@ -58,6 +58,7 @@ public class User implements UserDetails {
         this.name = name;
         this.email = email;
         this.username = username;
+        this.password = password;
         setEncodePassword(password);
     }
 
@@ -150,9 +151,16 @@ public class User implements UserDetails {
         this.authorities = authorities;
     }
 
-    public void setEncodePassword(String password) {
-        PasswordEncoder encoder = new BCryptPasswordEncoder();
-        String encodedPasswd = encoder.encode(password);
-        this.password = encodedPasswd;
+    private void setEncodePassword(String password) {
+        if (password != null) {
+            PasswordEncoder encoder = new BCryptPasswordEncoder();
+            String encodedPasswd = encoder.encode(password);
+            this.password = encodedPasswd;
+          }
     }
+
+    public void copyPassword(String password) {
+        this.password = password;
+    }
+
 }

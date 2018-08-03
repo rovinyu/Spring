@@ -15,7 +15,14 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
-
+  data:
+    elasticsearch:
+      cluster-nodes: 127.0.0.1:9300
+      properties:
+        transport:
+          tcp:
+            connect_timeout: 120s
+      cluster-name: elasticsearch
 file:
   server:
     url: http://localhost:8081/upload
