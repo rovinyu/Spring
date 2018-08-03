@@ -1,0 +1,17 @@
+Description:
+
+This is a really working blog system. 
+The code is referred from the link:
+https://github.com/waylau/spring-boot-enterprise-application-development
+
+1. All the backend code is new development based on Spring boot 2.0.3.RELEASE.
+2. The frondend code has been referred from the above link with many bugs fix.
+3. This blog system has the following dependencies:
+  3.1. MySQL server to store blog basic contents
+  3.2. MongoServer DB to store the images and user avatar files
+  3.3. ElasticServer to support full text search
+  
+  
+
+
+
