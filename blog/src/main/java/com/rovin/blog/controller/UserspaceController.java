@@ -60,6 +60,22 @@ public class UserspaceController {
         return "redirect:/u/" + username + "/blogs";
     }
 
+    private boolean isBlogOwner(String username) {
+        boolean isBlogOwner = false;
+        User principal = null;
+        if (SecurityContextHolder.getContext().getAuthentication() != null
+                && SecurityContextHolder.getContext().getAuthentication().isAuthenticated()
+                && !SecurityContextHolder.getContext().getAuthentication().getPrincipal()
+                .toString().equals("anonymousUser")) {
+            principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (principal != null && username.equals(principal.getUsername())) {
+                isBlogOwner = true;
+            }
+        }
+
+        return isBlogOwner;
+    }
+
     /**
      * @param username
      * @param order
@@ -79,6 +95,11 @@ public class UserspaceController {
                                    @RequestParam(value = "async", required = false) boolean async,
                                    @RequestParam(value = "pageIndex", required = false, defaultValue = "0") int pageIndex,
                                    @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize, Model model) {
+
+        if (!isBlogOwner(username)) {
+            return "redirect:/login";
+        }
+
         User user = (User) userDetailsService.loadUserByUsername(username);
 
         Page<Blog> page = null;
@@ -111,6 +132,11 @@ public class UserspaceController {
     @GetMapping("/{username}/blogs/{id}")
     public String getBlogById(@PathVariable("username") String username,
                               @PathVariable("id") Long id, Model model) {
+
+        if (!isBlogOwner(username)) {
+            return "redirect:/login";
+        }
+
         User principal = null;
         Optional<Blog> optionalBlog = blogService.getBlogById(id);
         Blog blog = null;

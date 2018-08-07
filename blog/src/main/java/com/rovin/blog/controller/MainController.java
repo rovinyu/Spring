@@ -5,6 +5,7 @@ import com.rovin.blog.domain.User;
 import com.rovin.blog.service.AuthorityService;
 import com.rovin.blog.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +32,16 @@ public class MainController {
 
     @GetMapping("/index")
     public String index() {
-        return "redirect:/blogs";
+
+        if (SecurityContextHolder.getContext().getAuthentication() != null
+                && SecurityContextHolder.getContext().getAuthentication().isAuthenticated()
+                && !SecurityContextHolder.getContext().getAuthentication().getPrincipal()
+                .toString().equals("anonymousUser")) {
+            User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return "redirect:/u/" + principal.getUsername() + "/blogs";
+        }
+
+        return "redirect:/login";
     }
 
     @GetMapping("/login")
@@ -72,4 +82,5 @@ public class MainController {
         }
         return "redirect:/login";
     }
+
 }
